@@ -647,31 +647,57 @@ def markdown_to_html(text):
         elif '**' in line:
             line = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', line)
             html_lines.append(f'<p>{line}</p>')
-        # 리스트 아이템 변환
-        elif line.startswith('- ') or line.startswith('* '):
+        # 리스트 아이템 변환 (-, *, + 모두 지원)
+        elif line.startswith('- ') or line.startswith('* ') or line.startswith('+ '):
             html_lines.append(f'<li>{line[2:]}</li>')
+        # 번호 있는 리스트 변환 (1., 2., 3. 등)
+        elif re.match(r'^\d+\.\s+', line):
+            content = re.sub(r'^\d+\.\s+', '', line)
+            html_lines.append(f'<li class="numbered">{content}</li>')
         # 일반 텍스트
         else:
             html_lines.append(f'<p>{line}</p>')
 
-    # 연속된 <li> 태그를 <ul>로 감싸기
+    # 연속된 <li> 태그를 적절한 리스트 태그로 감싸기
     result = []
-    in_list = False
+    in_unordered_list = False
+    in_ordered_list = False
 
     for line in html_lines:
-        if line.startswith('<li>'):
-            if not in_list:
+        if line.startswith('<li class="numbered">'):
+            # 번호 있는 리스트
+            if in_unordered_list:
+                result.append('</ul>')
+                in_unordered_list = False
+            if not in_ordered_list:
+                result.append('<ol>')
+                in_ordered_list = True
+            # class 제거하고 추가
+            result.append(line.replace(' class="numbered"', ''))
+        elif line.startswith('<li>'):
+            # 일반 리스트
+            if in_ordered_list:
+                result.append('</ol>')
+                in_ordered_list = False
+            if not in_unordered_list:
                 result.append('<ul>')
-                in_list = True
+                in_unordered_list = True
             result.append(line)
         else:
-            if in_list:
+            # 리스트가 아닌 요소
+            if in_unordered_list:
                 result.append('</ul>')
-                in_list = False
+                in_unordered_list = False
+            if in_ordered_list:
+                result.append('</ol>')
+                in_ordered_list = False
             result.append(line)
 
-    if in_list:
+    # 마지막에 열린 리스트 태그 닫기
+    if in_unordered_list:
         result.append('</ul>')
+    if in_ordered_list:
+        result.append('</ol>')
 
     return '\n'.join(result)
 
@@ -830,7 +856,7 @@ def create_multiple_infographics(results):
                 margin-top: 15px;
                 margin-bottom: 10px;
             }}
-            .analysis ul {{
+            .analysis ul, .analysis ol {{
                 margin: 10px 0;
                 padding-left: 20px;
             }}
@@ -845,7 +871,7 @@ def create_multiple_infographics(results):
                 margin-top: 15px;
                 margin-bottom: 10px;
             }}
-            .comprehensive-analysis ul {{
+            .comprehensive-analysis ul, .comprehensive-analysis ol {{
                 margin: 10px 0;
                 padding-left: 20px;
             }}
