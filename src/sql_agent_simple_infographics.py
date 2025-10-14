@@ -73,7 +73,7 @@ def create_infographic_from_sql_query(sql_query, question):
 
                 df = pd.DataFrame(result, columns=columns)
                 print(f"✅ DataFrame 생성 성공: {df.shape}")
-                print(f"📊 데이터 미리보기:\\n{df.head()}")
+                print(f"📊 데이터 미리보기:\n{df.head()}")
 
         elif isinstance(result, str):
             # 문자열 결과 파싱 (Decimal 객체 처리 포함)
@@ -107,7 +107,7 @@ def create_infographic_from_sql_query(sql_query, question):
 
                         df = pd.DataFrame(parsed_result, columns=columns)
                         print(f"✅ 문자열 파싱으로 DataFrame 생성 성공: {df.shape}")
-                        print(f"📊 데이터 미리보기:\\n{df.head()}")
+                        print(f"📊 데이터 미리보기:\n{df.head()}")
 
             except Exception as e:
                 print(f"⚠️ 문자열 파싱 실패: {e}")
@@ -132,7 +132,7 @@ def create_infographic_from_sql_query(sql_query, question):
                             df = pd.DataFrame(
                                 data, columns=['col1', 'col2', 'col3'])
                             print(f"✅ 정규식 파싱으로 DataFrame 생성 성공: {df.shape}")
-                            print(f"📊 데이터 미리보기:\\n{df.head()}")
+                            print(f"📊 데이터 미리보기:\n{df.head()}")
 
                 except Exception as e2:
                     print(f"⚠️ 대안 파싱도 실패: {e2}")
@@ -241,7 +241,7 @@ def create_infographic_from_sql_query(sql_query, question):
             chart_type = "테이블"
 
         if filename:
-            print(f"\\n📊 인포그래픽 생성 완료!")
+            print(f"\n📊 인포그래픽 생성 완료!")
             print(f"📁 파일: {filename}")
             print(f"📈 타입: {chart_type}")
             print(f"📋 크기: {len(df)}행 x {len(df.columns)}열")
@@ -294,7 +294,7 @@ print("-" * 60)
 
 while True:
     try:
-        user_question = input("\\n❓ 질문을 입력하세요: ").strip()
+        user_question = input("\n❓ 질문을 입력하세요: ").strip()
 
         if user_question.lower() in ['quit', 'exit', '종료', 'q']:
             print("👋 대화를 종료합니다.")
@@ -304,7 +304,7 @@ while True:
             print("⚠️ 질문을 입력해주세요.")
             continue
 
-        print(f"\\n🔍 질문: {user_question}")
+        print(f"\n🔍 질문: {user_question}")
         print("🤔 처리 중...")
 
         # Agent 실행 (출력 캡처)
@@ -319,20 +319,20 @@ while True:
 
         captured_text = captured_output.getvalue()
 
-        print(f"\\n✅ 답변:")
+        print(f"\n✅ 답변:")
         print(result['output'])
 
         # SQL 쿼리 추출
         sql_query = extract_sql_from_agent_output(captured_text)
 
         if sql_query:
-            print(f"\\n📝 실행된 SQL: {sql_query[:100]}...")
+            print(f"\n📝 실행된 SQL: {sql_query}")
 
             create_chart = input(
-                "\\n🎨 인포그래픽을 생성하시겠습니까? (y/n): ").strip().lower()
+                "\n🎨 인포그래픽을 생성하시겠습니까? (y/n): ").strip().lower()
 
             if create_chart in ['y', 'yes', '네', 'ㅇ']:
-                print("\\n🎨 인포그래픽 생성 중...")
+                print("\n🎨 인포그래픽 생성 중...")
 
                 infographic_file = create_infographic_from_sql_query(
                     sql_query, user_question)
@@ -342,13 +342,13 @@ while True:
                 else:
                     print("⚠️ 인포그래픽 생성에 실패했습니다.")
         else:
-            print("\\n⚠️ SQL 쿼리를 찾을 수 없어 인포그래픽을 생성할 수 없습니다.")
+            print("\n⚠️ SQL 쿼리를 찾을 수 없어 인포그래픽을 생성할 수 없습니다.")
 
-        print("\\n" + "="*60)
+        print("\n" + "="*60)
 
     except KeyboardInterrupt:
-        print("\\n\\n👋 사용자가 중단했습니다.")
+        print("\n\n👋 사용자가 중단했습니다.")
         break
     except Exception as e:
-        print(f"\\n❌ 오류 발생: {e}")
+        print(f"\n❌ 오류 발생: {e}")
         print("다시 시도해주세요.")
