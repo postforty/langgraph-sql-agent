@@ -1,0 +1,241 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>SQL Agent 다중 쿼리 대시보드</title>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                background-color: #f5f5f5;
+            }
+            .header {
+                text-align: center;
+                background-color: #2c3e50;
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+            }
+            .chart-container {
+                background-color: white;
+                margin: 20px 0;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+            .chart-info {
+                background-color: #ecf0f1;
+                padding: 10px;
+                border-radius: 5px;
+                margin-bottom: 15px;
+                font-size: 14px;
+            }
+            .summary {
+                background-color: #3498db;
+                color: white;
+                padding: 15px;
+                border-radius: 10px;
+                margin-bottom: 20px;
+            }
+            .analysis {
+                background-color: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                margin-top: 15px;
+                border-left: 4px solid #17a2b8;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+            .comprehensive-analysis {
+                background-color: #e8f5e8;
+                padding: 20px;
+                border-radius: 10px;
+                margin: 30px 0;
+                border-left: 5px solid #28a745;
+            }
+            .comprehensive-analysis h3 {
+                color: #155724;
+                margin-top: 0;
+            }
+            .analysis h1, .analysis h2, .analysis h3 {
+                color: #17a2b8;
+                margin-top: 15px;
+                margin-bottom: 10px;
+            }
+            .analysis ul {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+            .analysis li {
+                margin: 5px 0;
+            }
+            .analysis p {
+                margin: 8px 0;
+            }
+            .comprehensive-analysis h1, .comprehensive-analysis h2, .comprehensive-analysis h3 {
+                color: #155724;
+                margin-top: 15px;
+                margin-bottom: 10px;
+            }
+            .comprehensive-analysis ul {
+                margin: 10px 0;
+                padding-left: 20px;
+            }
+            .comprehensive-analysis li {
+                margin: 5px 0;
+            }
+            .comprehensive-analysis p {
+                margin: 8px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🤖 SQL Agent 다중 쿼리 대시보드</h1>
+            <p>생성 시간: 2025-10-14 14:04:34</p>
+        </div>
+        
+        <div class="summary">
+            <h3>📊 대시보드 요약</h3>
+            <p>총 3개의 차트가 생성되었습니다.</p>
+            <ul>
+    <li>차트 1: 막대 차트 - 카테고리별 영화 수를 알려주세요</li>
+<li>차트 2: 막대 차트 - 고객별 총 결제 금액 상위 10명을 보여주세요</li>
+<li>차트 3: 막대 차트 - 가장 많이 대여된 영화 5개는?</li>
+
+            </ul>
+        </div>
+    
+        <div class="comprehensive-analysis">
+            <h3>🎯 종합 분석 의견</h3>
+            <div><h2>종합 인사이트 및 권장사항</h2>
+<br>
+<h3>1. 전체 데이터 트렌드 요약</h3>
+<br>
+<p>본 데이터 분석 결과는 영화 콘텐츠의 카테고리별 분포, 고객의 소비 패턴, 그리고 인기 콘텐츠의 현황을 종합적으로 보여줍니다. 스포츠, 해외, 가족 장르에 상대적으로 많은 영화가 존재하며, 소수의 핵심 고객들이 높은 결제 금액을 기록하고 있습니다. 또한, 특정 영화들이 높은 대여율을 보이며 고객들의 선호도를 나타내고 있습니다.</p>
+<br>
+<h3>2. 주요 인사이트</h3>
+<br>
+<p>*   <strong>콘텐츠 포트폴리오의 특정 장르 집중:</strong> 스포츠, 해외, 가족 장르에 영화 수가 집중되어 있어, 해당 장르에 대한 고객의 관심이 높을 가능성을 시사합니다. 이는 콘텐츠 수급 및 제작 전략 수립에 중요한 고려사항이 됩니다.</p>
+<p>*   <strong>핵심 고객의 높은 기여도:</strong> 소수의 상위 고객들이 전체 결제 금액에서 상당한 비중을 차지하고 있으며, 특히 상위 3명의 고객은 압도적인 결제 금액을 기록했습니다. 이는 이들 고객의 충성도가 비즈니스 성과에 지대한 영향을 미침을 의미합니다.</p>
+<p>*   <strong>인기 콘텐츠의 명확한 선호도:</strong> 'BUCKET BROTHERHOOD', 'ROCKETEER MOTHER', 'FORWARD TEMPLE'과 같은 특정 영화들이 높은 대여율을 기록하고 있습니다. 이는 고객들이 특정 유형의 콘텐츠에 대한 선호도를 명확히 가지고 있음을 보여줍니다.</p>
+<br>
+<h3>3. 비즈니스 권장사항</h3>
+<br>
+<p>*   <strong>핵심 고객 대상 맞춤형 로열티 프로그램 강화:</strong> 상위 고객들의 높은 기여도를 고려하여, 이들을 위한 특별 혜택, 맞춤형 추천 서비스, VIP 이벤트 등을 제공하여 이탈을 방지하고 충성도를 더욱 강화해야 합니다. 또한, 이들의 구매 패턴을 분석하여 유사한 특성을 가진 잠재 고객을 발굴하는 데 활용해야 합니다.</p>
+<p>*   <strong>인기 콘텐츠 기반 마케팅 및 신규 콘텐츠 전략 수립:</strong> 가장 많이 대여된 영화들을 중심으로 프로모션을 진행하거나, 이들 영화와 유사한 장르, 테마, 또는 배우를 가진 신작을 적극적으로 확보하여 고객의 니즈를 지속적으로 충족시켜야 합니다. 또한, 인기 장르(스포츠, 해외, 가족)에 대한 콘텐츠 투자를 늘리는 것을 고려할 수 있습니다.</p>
+<p>*   <strong>콘텐츠 포트폴리오 다각화 및 균형:</strong> 현재 특정 장르에 집중된 영화 수를 고려하여, 다른 장르의 영화 수를 늘리거나, 특정 장르의 영화 수를 늘리는 전략을 통해 포트폴리오를 다각화하는 방안을 고려해볼 수 있습니다. 이는 잠재 고객층을 넓히고 특정 장르에 대한 의존도를 낮추는 데 도움이 될 것입니다.</p>
+<br>
+<h3>4. 추가 분석 제안</h3>
+<br>
+<p>*   <strong>고객별 대여 영화 장르 분석:</strong> 상위 고객들이 주로 어떤 장르의 영화를 대여하는지 분석하면, 이들의 선호도를 더욱 깊이 이해하고 맞춤형 추천 및 마케팅 전략을 고도화할 수 있습니다.</p>
+<p>*   <strong>시간대별/요일별 대여 트렌드 분석:</strong> 특정 시간대나 요일에 대여가 집중되는 경향이 있는지 분석하여, 프로모션 시점이나 콘텐츠 노출 전략을 최적화하는 데 활용할 수 있습니다.</p></div>
+        </div>
+    
+        <div class="chart-container">
+            <div class="chart-info">
+                <strong>차트 1: 막대 차트</strong><br>
+                질문: 카테고리별 영화 수를 알려주세요
+            </div>
+            <div id="chart_1"></div>
+            <div class="analysis">
+                <strong>📊 데이터 분석:</strong><br>
+                <div><h2>데이터 분석 결과 인사이트</h2>
+<br>
+<p><strong>1. 주요 발견사항</strong></p>
+<br>
+<ul>
+<li>  스포츠, 해외, 가족 장르가 가장 많은 영화 수를 차지하며, 특히 스포츠 장르가 74편으로 가장 많습니다.</li>
+<li>  전체적으로 카테고리별 영화 수의 편차가 크지 않지만, 스포츠 장르가 다른 장르에 비해 상대적으로 높은 영화 수를 보유하고 있습니다.</li>
+</ul>
+<br>
+<p><strong>2. 데이터 특징</strong></p>
+<br>
+<ul>
+<li>  총 16개의 카테고리에 대한 영화 수를 분석했으며, 각 카테고리별 영화 수는 평균 62.5편입니다.</li>
+<li>  데이터는 2개의 컬럼(카테고리 이름, 영화 수)으로 구성되어 있습니다.</li>
+</ul>
+<br>
+<p><strong>3. 비즈니스 시사점</strong></p>
+<br>
+<ul>
+<li>  스포츠, 해외, 가족 장르에 대한 콘텐츠 제작 및 마케팅에 집중하여 잠재 고객을 확보하는 것이 효과적일 수 있습니다.</li>
+<li>  다른 장르의 영화 수를 늘리거나, 특정 장르의 영화 수를 늘리는 전략을 통해 포트폴리오를 다각화하는 방안을 고려해볼 수 있습니다.</li>
+</ul></div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-info">
+                <strong>차트 2: 막대 차트</strong><br>
+                질문: 고객별 총 결제 금액 상위 10명을 보여주세요
+            </div>
+            <div id="chart_2"></div>
+            <div class="analysis">
+                <strong>📊 데이터 분석:</strong><br>
+                <div><h2>데이터 분석 결과 인사이트</h2>
+<br>
+<p><strong>1. 주요 발견사항</strong></p>
+<br>
+<ul>
+<li>  상위 10명의 고객이 전체 결제 금액에서 상당한 비중을 차지하고 있습니다.</li>
+<li>  특히 상위 3명의 고객(KARL SEAL, ELEANOR HUNT, CLARA SHAW)은 다른 고객들보다 훨씬 높은 결제 금액을 기록했습니다.</li>
+</ul>
+<br>
+<p><strong>2. 데이터 특징</strong></p>
+<br>
+<ul>
+<li>  분석 대상은 총 10명의 고객이며, 각 고객의 결제 금액은 평균 191.30, 최대 221.55, 최소 174.66의 범위를 보입니다.</li>
+<li>  데이터는 고객 이름(full_name)과 결제 금액(col3)을 중심으로 구성되어 있습니다.</li>
+</ul>
+<br>
+<p><strong>3. 비즈니스 시사점</strong></p>
+<br>
+<ul>
+<li>  핵심 고객층에 대한 집중적인 관리 및 혜택 제공을 통해 이탈을 방지하고 충성도를 높이는 전략이 필요합니다.</li>
+<li>  상위 고객들의 구매 패턴을 분석하여 유사한 특성을 가진 잠재 고객을 발굴하는 데 활용할 수 있습니다.</li>
+</ul></div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-info">
+                <strong>차트 3: 막대 차트</strong><br>
+                질문: 가장 많이 대여된 영화 5개는?
+            </div>
+            <div id="chart_3"></div>
+            <div class="analysis">
+                <strong>📊 데이터 분석:</strong><br>
+                <div><h2>데이터 분석 결과 인사이트</h2>
+<br>
+<p><strong>1. 주요 발견사항</strong></p>
+<br>
+<p>가장 많이 대여된 영화 상위 3편은 'BUCKET BROTHERHOOD', 'ROCKETEER MOTHER', 'FORWARD TEMPLE'이며, 각각 34회, 33회, 32회 대여되었습니다. 이 세 영화가 전체 대여량에서 상당한 비중을 차지하고 있음을 알 수 있습니다.</p>
+<br>
+<p><strong>2. 데이터 특징</strong></p>
+<br>
+<p>분석된 데이터는 총 5개의 영화에 대한 대여 횟수를 나타내며, 상위 3개 영화의 대여 횟수는 32회에서 34회 사이로 매우 근접한 분포를 보입니다.</p>
+<br>
+<p><strong>3. 비즈니스 시사점</strong></p>
+<br>
+<p>인기 있는 영화들을 중심으로 마케팅 전략을 강화하거나, 이들 영화와 유사한 장르 또는 테마의 신작을 확보하여 고객의 니즈를 충족시키는 것이 효과적일 수 있습니다.</p></div>
+            </div>
+        </div>
+        
+<script>
+
+        var fig_1 = {"data":[{"hovertemplate":"name=%{x}\u003cbr\u003evalue=%{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"i1","bdata":"SklFREJAPz49PTw6OTk4"},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"textposition":"auto","x":["Sports","Foreign","Family","Documentary","Animation","Action","New","Drama","Games","Sci-Fi","Children","Comedy","Classics","Travel","Horror"],"xaxis":"x","y":{"dtype":"i1","bdata":"SklFREJAPz49PTw6OTk4"},"yaxis":"y","type":"bar"}],"layout":{"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"name"},"tickangle":45},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"value"}},"coloraxis":{"colorbar":{"title":{"text":"value"}},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]]},"legend":{"tracegroupgap":0},"title":{"text":"[1] 카테고리별 영화 수를 알려주세요","font":{"size":14}},"barmode":"relative","margin":{"t":80,"b":50,"l":50,"r":50},"height":500}};
+        Plotly.newPlot('chart_1', fig_1.data, fig_1.layout);
+        
+        var fig_2 = {"data":[{"hovertemplate":"full_name=%{x}\u003cbr\u003ecol3=%{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"f8","bdata":"mpmZmZmxa0DhehSuRxFrQMP1KFyPcmhA7FG4HoVTaEDsUbgehVNoQKRwPQrXU2dAMzMzMzMzZkDsUbgehfNlQMP1KFyP8mVAhetRuB7VZUA="},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"textposition":"auto","x":["KARL SEAL","ELEANOR HUNT","CLARA SHAW","RHONDA KENNEDY","MARION SNYDER","TOMMY COLLAZO","WESLEY BULL","TIM CARY","MARCIA DEAN","ANA BRADLEY"],"xaxis":"x","y":{"dtype":"f8","bdata":"mpmZmZmxa0DhehSuRxFrQMP1KFyPcmhA7FG4HoVTaEDsUbgehVNoQKRwPQrXU2dAMzMzMzMzZkDsUbgehfNlQMP1KFyP8mVAhetRuB7VZUA="},"yaxis":"y","type":"bar"}],"layout":{"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"full_name"},"tickangle":45},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"col3"}},"coloraxis":{"colorbar":{"title":{"text":"col3"}},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]]},"legend":{"tracegroupgap":0},"title":{"text":"[2] 고객별 총 결제 금액 상위 10명을 보여주세요","font":{"size":14}},"barmode":"relative","margin":{"t":80,"b":50,"l":50,"r":50},"height":500}};
+        Plotly.newPlot('chart_2', fig_2.data, fig_2.layout);
+        
+        var fig_3 = {"data":[{"hovertemplate":"name=%{x}\u003cbr\u003evalue=%{marker.color}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"i1","bdata":"IiEgICA="},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"textposition":"auto","x":["BUCKET BROTHERHOOD","ROCKETEER MOTHER","FORWARD TEMPLE","GRIT CLOCKWORK","JUGGLER HARDLY"],"xaxis":"x","y":{"dtype":"i1","bdata":"IiEgICA="},"yaxis":"y","type":"bar"}],"layout":{"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"name"},"tickangle":45},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"value"}},"coloraxis":{"colorbar":{"title":{"text":"value"}},"colorscale":[[0.0,"#440154"],[0.1111111111111111,"#482878"],[0.2222222222222222,"#3e4989"],[0.3333333333333333,"#31688e"],[0.4444444444444444,"#26828e"],[0.5555555555555556,"#1f9e89"],[0.6666666666666666,"#35b779"],[0.7777777777777778,"#6ece58"],[0.8888888888888888,"#b5de2b"],[1.0,"#fde725"]]},"legend":{"tracegroupgap":0},"title":{"text":"[3] 가장 많이 대여된 영화 5개는?","font":{"size":14}},"barmode":"relative","margin":{"t":80,"b":50,"l":50,"r":50},"height":500}};
+        Plotly.newPlot('chart_3', fig_3.data, fig_3.layout);
+        
+    </script>
+    </body>
+    </html>
+    
