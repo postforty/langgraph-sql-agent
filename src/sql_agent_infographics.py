@@ -17,13 +17,20 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 
-# LLM 설정
-# llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)
-llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0)
-# llm = OllamaLLM(model="gemma3:latest", base_url="http://localhost:11434")
+# LLM 설정 - 하이브리드 접근법
+translator_llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash", temperature=0)  # 한국어 번역
+sql_llm = OllamaLLM(model="codellama:latest",
+                    base_url="http://localhost:11434")  # SQL 특화
+# 대안 모델들:
+# sql_llm = OllamaLLM(model="deepseek-coder:6.7b", base_url="http://localhost:11434")  # 경량 SQL
+# sql_llm = OllamaLLM(model="starcoder2:7b", base_url="http://localhost:11434")  # 또 다른 선택
+
+# 기본 LLM (SQL Agent용)
+llm = sql_llm
 
 # MySQL 연결 설정
-db_uri = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+db_uri = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}?charset=utf8mb4"
 
 try:
     db = SQLDatabase.from_uri(db_uri)
@@ -37,9 +44,12 @@ except Exception as e:
 agent_executor = create_sql_agent(
     llm=llm,
     db=db,
-    # agent_type="openai-tools",
+    # agent_type="openai-tools",  # Gemini는 openai-tools 지원
     agent_type="zero-shot-react-description",  # Ollama 호환
-    verbose=True
+    verbose=True,
+    handle_parsing_errors=True,  # 파싱 오류 처리 활성화
+    max_iterations=3,  # 최대 반복 횟수 제한
+    early_stopping_method="generate"  # 조기 종료 방법
 )
 
 # 인포그래픽 디렉토리 생성
@@ -286,6 +296,14 @@ def extract_sql_from_agent_output(captured_text):
                 # ANSI 코드 다시 제거
                 clean_match = ansi_escape.sub('', clean_match)
 
+                # 마크다운 코드 블록 제거
+                clean_match = re.sub(r'```sql.*?```', '',
+                                     clean_match, flags=re.DOTALL)
+                clean_match = re.sub(
+                    r'```.*?```', '', clean_match, flags=re.DOTALL)
+                clean_match = clean_match.replace(
+                    '```sql', '').replace('```', '')
+
                 # Action/Thought 등 Agent 키워드 제거
                 agent_keywords = ['Action:', 'Thought:',
                                   'Observation:', 'Final Answer:', 'Action Input:']
@@ -297,7 +315,12 @@ def extract_sql_from_agent_output(captured_text):
                 if clean_match.upper().startswith('SELECT'):
                     # 줄바꿈을 공백으로 변경하고 여러 공백을 하나로
                     clean_match = re.sub(r'\s+', ' ', clean_match)
-                    return clean_match.strip()
+
+                    # 마지막으로 한 번 더 마크다운 제거
+                    clean_match = clean_match.replace(
+                        '```sql', '').replace('```', '').strip()
+
+                    return clean_match
 
     return None
 
@@ -326,18 +349,21 @@ def process_multiple_questions(questions_list):
     """다중 질문을 처리하고 각각의 SQL 쿼리와 결과를 반환"""
     results = []
 
-    for i, question in enumerate(questions_list, 1):
-        print(f"\n🔍 질문 {i}/{len(questions_list)}: {question}")
+    for i, original_question in enumerate(questions_list, 1):
+        print(f"\n🔍 질문 {i}/{len(questions_list)}: {original_question}")
+
+        # 한국어 질문을 영어로 번역
+        english_question = translate_korean_to_english(original_question)
         print("🤔 처리 중...")
 
         try:
-            # Agent 실행 (출력 캡처)
+            # Agent 실행 (출력 캡처) - 영어 질문 사용
             old_stdout = sys.stdout
             captured_output = StringIO()
             sys.stdout = captured_output
 
             try:
-                result = agent_executor.invoke({"input": question})
+                result = agent_executor.invoke({"input": english_question})
             finally:
                 sys.stdout = old_stdout
 
@@ -348,7 +374,8 @@ def process_multiple_questions(questions_list):
 
             if sql_query:
                 results.append({
-                    'question': question,
+                    'question': original_question,  # 원본 한국어 질문 저장
+                    'english_question': english_question,  # 번역된 영어 질문도 저장
                     'answer': result['output'],
                     'sql_query': sql_query,
                     'captured_text': captured_text
@@ -358,7 +385,8 @@ def process_multiple_questions(questions_list):
             else:
                 print(f"⚠️ 질문 {i}: SQL 쿼리를 찾을 수 없습니다.")
                 results.append({
-                    'question': question,
+                    'question': original_question,  # 원본 한국어 질문 저장
+                    'english_question': english_question,
                     'answer': result['output'],
                     'sql_query': None,
                     'captured_text': captured_text
@@ -367,7 +395,8 @@ def process_multiple_questions(questions_list):
         except Exception as e:
             print(f"❌ 질문 {i} 처리 중 오류: {e}")
             results.append({
-                'question': question,
+                'question': original_question,  # 원본 한국어 질문 저장
+                'english_question': english_question if 'english_question' in locals() else original_question,
                 'answer': f"오류 발생: {e}",
                 'sql_query': None,
                 'captured_text': ""
@@ -431,11 +460,14 @@ def validate_and_clean_sql(sql_query):
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     clean_sql = ansi_escape.sub('', sql_query)
 
-    # 마크다운 코드 블록 표시 제거
+    # 마크다운 코드 블록 표시 제거 (더 강력한 패턴)
     clean_sql = re.sub(r'```sql.*?```', '', clean_sql, flags=re.DOTALL)
     clean_sql = re.sub(r'```.*?```', '', clean_sql, flags=re.DOTALL)
-    clean_sql = re.sub(r'```sql', '', clean_sql)
-    clean_sql = re.sub(r'```', '', clean_sql)
+    clean_sql = re.sub(r'```sql.*$', '', clean_sql, flags=re.MULTILINE)
+    clean_sql = re.sub(r'```.*$', '', clean_sql, flags=re.MULTILINE)
+    clean_sql = re.sub(r'^```sql', '', clean_sql, flags=re.MULTILINE)
+    clean_sql = re.sub(r'^```', '', clean_sql, flags=re.MULTILINE)
+    clean_sql = clean_sql.replace('```sql', '').replace('```', '')
 
     # 줄바꿈과 여러 공백 정리
     clean_sql = re.sub(r'\s+', ' ', clean_sql).strip()
@@ -972,6 +1004,40 @@ def create_multiple_infographics(results):
         return []
 
 
+def translate_korean_to_english(korean_question):
+    """한국어 질문을 영어로 번역"""
+    try:
+        print(f"🌐 한국어 질문 번역 중: {korean_question}")
+
+        # 한국어 감지 (간단한 방법)
+        has_korean = any('\uac00' <= char <=
+                         '\ud7af' for char in korean_question)
+
+        if not has_korean:
+            print("📝 이미 영어 질문입니다.")
+            return korean_question
+
+        translation_prompt = f"""
+다음 한국어 데이터베이스 질문을 정확한 영어로 번역해주세요. 
+데이터베이스 용어와 SQL 관련 표현을 정확히 번역하는 것이 중요합니다.
+
+한국어 질문: {korean_question}
+
+영어 번역만 답변해주세요. 추가 설명은 불필요합니다.
+"""
+
+        english_question = translator_llm.invoke(
+            translation_prompt).content.strip()
+        print(f"🌐 번역 결과: {english_question}")
+
+        return english_question
+
+    except Exception as e:
+        print(f"⚠️ 번역 실패: {e}")
+        print("📝 원본 질문을 그대로 사용합니다.")
+        return korean_question
+
+
 def parse_multiple_questions(input_text):
     """입력 텍스트에서 다중 질문을 파싱"""
     # 구분자로 질문들을 분리
@@ -1042,17 +1108,20 @@ while True:
 
         # 단일 질문 처리
         if len(questions) == 1 and not force_multi:
-            question = questions[0]
-            print(f"\n🔍 단일 질문 처리: {question}")
+            original_question = questions[0]
+            print(f"\n🔍 단일 질문 처리: {original_question}")
+
+            # 한국어 질문을 영어로 번역
+            english_question = translate_korean_to_english(original_question)
             print("🤔 처리 중...")
 
-            # Agent 실행 (출력 캡처)
+            # Agent 실행 (출력 캡처) - 영어 질문 사용
             old_stdout = sys.stdout
             captured_output = StringIO()
             sys.stdout = captured_output
 
             try:
-                result = agent_executor.invoke({"input": question})
+                result = agent_executor.invoke({"input": english_question})
             finally:
                 sys.stdout = old_stdout
 
@@ -1074,7 +1143,7 @@ while True:
                     print("\n🎨 인포그래픽 생성 중...")
 
                     infographic_file = create_infographic_from_sql_query(
-                        sql_query, question)
+                        sql_query, original_question)  # 원본 한국어 질문 사용
 
                     if infographic_file:
                         print("✨ 생성 완료! 파일을 더블클릭해서 브라우저에서 확인하세요.")
