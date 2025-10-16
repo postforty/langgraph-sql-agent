@@ -26,8 +26,8 @@ sql_llm = OllamaLLM(model="codellama:latest",
 # sql_llm = OllamaLLM(model="deepseek-coder:6.7b", base_url="http://localhost:11434")  # 경량 SQL
 # sql_llm = OllamaLLM(model="starcoder2:7b", base_url="http://localhost:11434")  # 또 다른 선택
 
-# 기본 LLM (SQL Agent용)
-llm = sql_llm
+# 기본 LLM (SQL Agent용) - 안정성을 위해 Gemini 사용
+llm = translator_llm  # Gemini로 통일 (번역 + SQL 생성)
 
 # MySQL 연결 설정
 db_uri = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}?charset=utf8mb4"
@@ -44,12 +44,9 @@ except Exception as e:
 agent_executor = create_sql_agent(
     llm=llm,
     db=db,
-    # agent_type="openai-tools",  # Gemini는 openai-tools 지원
-    agent_type="zero-shot-react-description",  # Ollama 호환
+    agent_type="openai-tools",  # Gemini는 openai-tools 지원
     verbose=True,
-    handle_parsing_errors=True,  # 파싱 오류 처리 활성화
-    max_iterations=3,  # 최대 반복 횟수 제한
-    early_stopping_method="generate"  # 조기 종료 방법
+    handle_parsing_errors=True  # 파싱 오류 처리 활성화
 )
 
 # 인포그래픽 디렉토리 생성
