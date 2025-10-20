@@ -1,5 +1,5 @@
 """
-간단하고 확실한 SQL Agent with 인포그래픽
+SQL Agent with 인포그래픽
 """
 import sys
 from io import StringIO
@@ -27,7 +27,7 @@ sql_llm = OllamaLLM(model="codellama:latest",
 # sql_llm = OllamaLLM(model="starcoder2:7b", base_url="http://localhost:11434")  # 또 다른 선택
 
 # 기본 LLM (SQL Agent용) - 안정성을 위해 Gemini 사용
-llm = translator_llm  # Gemini로 통일 (번역 + SQL 생성)
+# llm = translator_llm  # Gemini로 통일 (번역 + SQL 생성)
 
 # MySQL 연결 설정
 db_uri = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}?charset=utf8mb4"
@@ -42,9 +42,11 @@ except Exception as e:
 
 # SQL Agent 생성
 agent_executor = create_sql_agent(
-    llm=llm,
+    # llm=llm,
+    llm=sql_llm,
     db=db,
-    agent_type="openai-tools",  # Gemini는 openai-tools 지원
+    # agent_type="openai-tools",  # Gemini는 openai-tools 지원
+    agent_type="zero-shot-react-description",
     verbose=True,
     handle_parsing_errors=True  # 파싱 오류 처리 활성화
 )
@@ -322,24 +324,41 @@ def extract_sql_from_agent_output(captured_text):
     return None
 
 
-def extract_all_sql_from_agent_output(captured_text):
-    """Agent 출력에서 모든 SQL 쿼리 추출"""
-    patterns = [
-        r"Invoking: `sql_db_query` with `\\{'query': '([^']+)'\\}`",
-        r'query.*?["\']([^"\']*SELECT[^"\']*)["\']',
-    ]
+def extract_sql_from_agent_output_improved(captured_text):
+    import re
+    # 1. OpenAI Tool-Calling 및 Invoking 패턴 (가장 일반적인 LangChain SQL Agent 로그)
+    # LangChain v0.1.0 이후의 표준 로그 형태
+    pattern_invoke_tool = re.compile(
+        r'Invoking:\s*`sql_db_query`\s*with\s*`\{[\'"]query[\'"]:[\s\r\n]*[\'"](SELECT[^"\']*)[\'"]\}',
+        re.DOTALL | re.IGNORECASE
+    )
+    # 2. ReAct Action Input 패턴 (이스케이프된 따옴표 처리)
+    pattern_react_input = re.compile(
+        r'Action Input:\s*[\'"]?([s]*SELECT[^"\']*)[\'"]?',
+        re.DOTALL | re.IGNORECASE
+    )
+    # 3. 코드 블록 형태 (오류 발생 시 LLM이 임의로 생성하는 경우)
+    pattern_code_block = re.compile(
+        r'```[sS]QL\s*([^`]+)\s*```', 
+        re.DOTALL | re.IGNORECASE
+    )
 
-    all_queries = []
-
-    for pattern in patterns:
-        matches = re.findall(pattern, captured_text, re.DOTALL | re.IGNORECASE)
-        for match in matches:
-            if match.strip().upper().startswith('SELECT'):
-                query = match.strip()
-                if query not in all_queries:  # 중복 제거
-                    all_queries.append(query)
-
-    return all_queries
+    # ANSI 색상 코드 제거
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    cleaned_text = ansi_escape.sub('', captured_text)
+    
+    # 패턴 순서대로 시도
+    for pattern in [pattern_invoke_tool, pattern_react_input, pattern_code_block]:
+        matches = pattern.findall(cleaned_text)
+        if matches:
+            # 첫 번째 일치하는 쿼리를 반환 (일반적으로 첫 번째 쿼리가 실행됨)
+            sql_query = matches[0].strip()
+            # 줄바꿈 및 다중 공백 정리
+            sql_query = re.sub(r'\s+', ' ', sql_query).strip()
+            if sql_query.upper().startswith('SELECT'):
+                return sql_query
+    
+    return None
 
 
 def process_multiple_questions(questions_list):
@@ -502,6 +521,8 @@ def create_chart_figure(sql_query, question, chart_index):
 
         # SQL 쿼리 직접 실행
         result = db.run(clean_sql)
+
+        print("✨result:", result)
 
         # DataFrame 변환 (기존 로직 재사용)
         df = None
