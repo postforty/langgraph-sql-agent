@@ -20,4 +20,5 @@ dependencies = [
     "plotly>=5.17.0",
     "pillow>=10.0.0",
     "langchain-ollama>=0.3.10",
+    "gradio>=5.49.1",
 ]

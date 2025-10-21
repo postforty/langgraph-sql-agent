@@ -23,6 +23,7 @@ translator_llm = ChatGoogleGenerativeAI(
 print("✅ Gemini 번역 모델 로드 완료")
 
 # SQL 생성용 CodeLlama
+# https://ollama.com/library/codeqwen
 sql_llm = OllamaLLM(
     model="codeqwen:latest",
     temperature=0
