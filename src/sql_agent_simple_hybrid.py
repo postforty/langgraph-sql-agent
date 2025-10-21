@@ -127,10 +127,38 @@ Please generate SQL queries based on common database patterns and table/column n
 """
 
 
+def detect_query_type(english_question):
+    """질문에서 SQL 쿼리 타입 감지"""
+    question_lower = english_question.lower()
+
+    # INSERT 키워드 감지
+    insert_keywords = ['add', 'insert', 'create', 'register', '추가', '등록', '생성']
+    if any(keyword in question_lower for keyword in insert_keywords):
+        return 'INSERT'
+
+    # UPDATE 키워드 감지
+    update_keywords = ['update', 'modify',
+                       'change', 'edit', '수정', '변경', '업데이트']
+    if any(keyword in question_lower for keyword in update_keywords):
+        return 'UPDATE'
+
+    # DELETE 키워드 감지
+    delete_keywords = ['delete', 'remove', 'drop', '삭제', '제거']
+    if any(keyword in question_lower for keyword in delete_keywords):
+        return 'DELETE'
+
+    # 기본값은 SELECT
+    return 'SELECT'
+
+
 def generate_sql_direct(english_question):
     """CodeLlama로 직접 SQL 생성"""
     try:
         print(f"🔍 SQL 생성 중: {english_question}")
+
+        # 쿼리 타입 감지
+        query_type = detect_query_type(english_question)
+        print(f"🎯 감지된 쿼리 타입: {query_type}")
 
         # 동적으로 스키마 정보 가져오기
         schema_info = get_database_schema()
@@ -139,15 +167,17 @@ def generate_sql_direct(english_question):
         if "Schema information is not available" in schema_info:
             print("⚠️ 스키마 정보 없이 SQL 생성 시도 - 결과가 부정확할 수 있습니다")
 
-        sql_prompt = f"""### Instructions:
-Your task is to convert a question into a SQL query, given a MySQL database schema.
+        # 쿼리 타입별 프롬프트 생성
+        if query_type == 'SELECT':
+            sql_prompt = f"""### Instructions:
+Your task is to convert a question into a SQL SELECT query, given a MySQL database schema.
 Adhere to these rules:
 - **Deliberately go through the question and database schema word by word** to appropriately answer the question
 - **Use Table Aliases** to prevent ambiguity. For example, `SELECT f.title, a.first_name FROM film f JOIN film_actor fa ON f.film_id = fa.film_id JOIN actor a ON fa.actor_id = a.actor_id`.
 - When creating a ratio, always cast the numerator as float
 
 ### Input:
-Generate a SQL query that answers the question `{english_question}`.
+Generate a SQL SELECT query that answers the question `{english_question}`.
 This query will run on a database whose schema is represented in this string:
 
 {schema_info}
@@ -160,7 +190,63 @@ This query will run on a database whose schema is represented in this string:
 -- inventory: connects film and store
 
 ### Response:
-Based on your instructions, here is the SQL query I have generated to answer the question `{english_question}`:
+Based on your instructions, here is the SQL SELECT query I have generated to answer the question `{english_question}`:
+```sql"""
+
+        elif query_type == 'INSERT':
+            sql_prompt = f"""### Instructions:
+Your task is to convert a request into a SQL INSERT query, given a MySQL database schema.
+Adhere to these rules:
+- **Deliberately go through the request and database schema word by word** to create appropriate INSERT statement
+- **Use realistic sample data** that fits the schema constraints
+- **Include all required columns** based on the schema
+- **Use proper data types** (strings in quotes, numbers without quotes, dates in proper format)
+
+### Input:
+Generate a SQL INSERT query for the request `{english_question}`.
+This query will be based on a database whose schema is represented in this string:
+
+{schema_info}
+
+### Response:
+Based on your instructions, here is the SQL INSERT query I have generated for the request `{english_question}`:
+```sql"""
+
+        elif query_type == 'UPDATE':
+            sql_prompt = f"""### Instructions:
+Your task is to convert a request into a SQL UPDATE query, given a MySQL database schema.
+Adhere to these rules:
+- **Deliberately go through the request and database schema word by word** to create appropriate UPDATE statement
+- **Include proper WHERE clause** to target specific records
+- **Use realistic sample data** that fits the schema constraints
+- **Use proper data types** (strings in quotes, numbers without quotes, dates in proper format)
+
+### Input:
+Generate a SQL UPDATE query for the request `{english_question}`.
+This query will be based on a database whose schema is represented in this string:
+
+{schema_info}
+
+### Response:
+Based on your instructions, here is the SQL UPDATE query I have generated for the request `{english_question}`:
+```sql"""
+
+        elif query_type == 'DELETE':
+            sql_prompt = f"""### Instructions:
+Your task is to convert a request into a SQL DELETE query, given a MySQL database schema.
+Adhere to these rules:
+- **Deliberately go through the request and database schema word by word** to create appropriate DELETE statement
+- **Include proper WHERE clause** to target specific records (NEVER create DELETE without WHERE unless explicitly requested)
+- **Be careful with foreign key constraints** - consider the impact on related tables
+
+### Input:
+Generate a SQL DELETE query for the request `{english_question}`.
+This query will be based on a database whose schema is represented in this string:
+
+{schema_info}
+
+### Response:
+Based on your instructions, here is the SQL DELETE query I have generated for the request `{english_question}`:
 ```sql"""
 
         result = sql_llm.invoke(sql_prompt)
@@ -201,26 +287,32 @@ Based on your instructions, here is the SQL query I have generated to answer the
         return None
 
 
-def execute_sql_and_format(sql_query):
-    """SQL 실행 및 결과 포맷팅"""
+def execute_sql_and_format(sql_query, query_type='SELECT'):
+    """SQL 실행 및 결과 포맷팅 - SELECT만 실행, 나머지는 쿼리만 표시"""
     try:
-        print(f"🔍 SQL 실행: {sql_query}")
-        result = db.run(sql_query)
-        print(f"✅ 실행 성공")
+        if query_type == 'SELECT':
+            print(f"🔍 SQL 실행: {sql_query}")
+            result = db.run(sql_query)
+            print(f"✅ 실행 성공")
 
-        # 결과를 읽기 쉽게 포맷팅
-        if isinstance(result, str):
-            return result
-        elif isinstance(result, list) and result:
-            if isinstance(result[0], tuple):
-                # 튜플 리스트를 테이블 형태로 변환
-                formatted_result = []
-                for row in result[:10]:  # 상위 10개만
-                    formatted_result.append(
-                        " | ".join(str(item) for item in row))
-                return "\n".join(formatted_result)
+            # 결과를 읽기 쉽게 포맷팅
+            if isinstance(result, str):
+                return result
+            elif isinstance(result, list) and result:
+                if isinstance(result[0], tuple):
+                    # 튜플 리스트를 테이블 형태로 변환
+                    formatted_result = []
+                    for row in result[:10]:  # 상위 10개만
+                        formatted_result.append(
+                            " | ".join(str(item) for item in row))
+                    return "\n".join(formatted_result)
 
-        return str(result)
+            return str(result)
+
+        else:
+            # INSERT, UPDATE, DELETE는 실행하지 않고 쿼리만 표시
+            print(f"⚠️ {query_type} 쿼리는 실행하지 않습니다 (안전을 위해)")
+            return f"✅ {query_type} 쿼리가 생성되었습니다.\n실제 실행을 원하시면 직접 데이터베이스에서 실행해주세요.\n\n생성된 쿼리:\n{sql_query}"
 
     except Exception as e:
         print(f"❌ SQL 실행 실패: {e}")
@@ -238,23 +330,28 @@ def process_single_question(question):
         english_question = question
         print(f"🔤 영어 질문 감지: {english_question}")
 
-    # 2. SQL 생성
+    # 2. 쿼리 타입 감지
+    query_type = detect_query_type(english_question)
+
+    # 3. SQL 생성
     sql_query = generate_sql_direct(english_question)
     if not sql_query:
         return {
             'question': question,
             'english_question': english_question,
+            'query_type': query_type,
             'sql_query': None,
             'result': "SQL 생성 실패",
             'success': False
         }
 
-    # 3. SQL 실행
-    result = execute_sql_and_format(sql_query)
+    # 4. SQL 실행 (SELECT만 실행, 나머지는 쿼리만 표시)
+    result = execute_sql_and_format(sql_query, query_type)
 
     return {
         'question': question,
         'english_question': english_question,
+        'query_type': query_type,
         'sql_query': sql_query,
         'result': result,
         'success': True
@@ -292,10 +389,11 @@ if __name__ == "__main__":
     print("🎯 Gemini(번역) + CodeLlama(SQL)")
     print("="*50)
     print("💡 예시 질문:")
-    print("   - 영화가 몇 개 있나요?")
-    print("   - 고객 수를 보여주세요")
-    print("   - 영화 카테고리별 개수를 보여주세요")
-    print("   - How many films are there? (영어도 가능)")
+    print("   📊 SELECT: 영화가 몇 개 있나요? / 고객 수를 보여주세요")
+    print("   ➕ INSERT: 새로운 영화를 추가해주세요 / Add a new customer")
+    print("   ✏️ UPDATE: 영화 제목을 수정해주세요 / Update customer information")
+    print("   🗑️ DELETE: 영화를 삭제해주세요 / Remove old records")
+    print("   🌐 영어도 가능: How many films are there?")
     print("-"*50)
 
     # 명령행 인수가 있으면 해당 질문 처리
@@ -311,12 +409,14 @@ if __name__ == "__main__":
                 print(f"\n--- 결과 {i} ---")
                 if sub_result['english_question'] != sub_result['question']:
                     print(f"번역: {sub_result['english_question']}")
+                print(f"쿼리 타입: {sub_result.get('query_type', 'SELECT')}")
                 print(f"SQL: {sub_result['sql_query']}")
                 print(f"결과:\n{sub_result['result']}")
         else:
             # 단일 질문 결과 출력
             if result['english_question'] != result['question']:
                 print(f"번역: {result['english_question']}")
+            print(f"쿼리 타입: {result.get('query_type', 'SELECT')}")
             print(f"SQL: {result['sql_query']}")
             print(f"결과:\n{result['result']}")
 
@@ -342,12 +442,15 @@ if __name__ == "__main__":
                         print(f"\n--- 결과 {i} ---")
                         if sub_result['english_question'] != sub_result['question']:
                             print(f"번역: {sub_result['english_question']}")
+                        print(
+                            f"쿼리 타입: {sub_result.get('query_type', 'SELECT')}")
                         print(f"SQL: {sub_result['sql_query']}")
                         print(f"결과:\n{sub_result['result']}")
                 else:
                     # 단일 질문 결과 출력
                     if result['english_question'] != result['question']:
                         print(f"번역: {result['english_question']}")
+                    print(f"쿼리 타입: {result.get('query_type', 'SELECT')}")
                     print(f"SQL: {result['sql_query']}")
                     print(f"결과:\n{result['result']}")
 
