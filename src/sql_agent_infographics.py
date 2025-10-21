@@ -20,8 +20,10 @@ load_dotenv(override=True)
 # LLM 설정 - 하이브리드 접근법
 translator_llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash", temperature=0)  # 한국어 번역
-sql_llm = OllamaLLM(model="codellama:latest",
-                    base_url="http://localhost:11434")  # SQL 특화
+sql_llm = OllamaLLM(
+    model="codeqwen:latest",
+    base_url="http://localhost:11434"
+)  # SQL 특화
 # 대안 모델들:
 # sql_llm = OllamaLLM(model="deepseek-coder:6.7b", base_url="http://localhost:11434")  # 경량 SQL
 # sql_llm = OllamaLLM(model="starcoder2:7b", base_url="http://localhost:11434")  # 또 다른 선택
@@ -339,14 +341,14 @@ def extract_sql_from_agent_output_improved(captured_text):
     )
     # 3. 코드 블록 형태 (오류 발생 시 LLM이 임의로 생성하는 경우)
     pattern_code_block = re.compile(
-        r'```[sS]QL\s*([^`]+)\s*```', 
+        r'```[sS]QL\s*([^`]+)\s*```',
         re.DOTALL | re.IGNORECASE
     )
 
     # ANSI 색상 코드 제거
     ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
     cleaned_text = ansi_escape.sub('', captured_text)
-    
+
     # 패턴 순서대로 시도
     for pattern in [pattern_invoke_tool, pattern_react_input, pattern_code_block]:
         matches = pattern.findall(cleaned_text)
@@ -357,7 +359,7 @@ def extract_sql_from_agent_output_improved(captured_text):
             sql_query = re.sub(r'\s+', ' ', sql_query).strip()
             if sql_query.upper().startswith('SELECT'):
                 return sql_query
-    
+
     return None
 
 
