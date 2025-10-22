@@ -19,18 +19,19 @@ services:
               count: all
               capabilities: [gpu]
 
-  pgvector-db:
-    image: pgvector/pgvector:pg17-trixie
+  mysql-db:
+    image: mysql:8.0
     restart: always
-    container_name: pgvector-db
+    container_name: mysql-db
     ports:
-      - "5432:5432"
+      - "3307:3306"
     environment:
-      - POSTGRES_USER=langchain
-      - POSTGRES_PASSWORD=langchain
-      - POSTGRES_DB=langchain_db
+      - MYSQL_ROOT_PASSWORD=sqlagent
+      - MYSQL_DATABASE=sakila
+      - MYSQL_USER=sqlagent
+      - MYSQL_PASSWORD=sqlagent
     volumes:
-      - C:/docker_data/pgvector_data:/var/lib/postgresql/data
+      - C:/docker_data/mysql_data:/var/lib/mysql
     networks:
       - ollama_net
 
@@ -39,5 +40,5 @@ networks:
     driver: bridge
 
 volumes:
-  pgvector_data:
+  mysql_data:
   ollama_models:

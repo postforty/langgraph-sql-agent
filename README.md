@@ -18,7 +18,7 @@ Docker Compose를 사용하면 Ollama와 데이터베이스를 쉽게 설정할 
 
 ```bash
 # 1. Docker Compose로 서비스 시작
-cd docker_compose_ollama_pgvector
+cd docker_compose_ollama_mysql
 docker-compose up -d
 
 # 2. Ollama 모델 설치
@@ -27,13 +27,13 @@ docker exec -it ollama ollama pull codeqwen:latest
 # 3. 환경 변수 설정 (.env 파일)
 GOOGLE_API_KEY=your_gemini_api_key
 DB_HOST=localhost
-DB_PORT=5432
-DB_USER=langchain
-DB_PASSWORD=langchain
-DB_NAME=langchain_db
+DB_PORT=3307
+DB_USER=sqlagent
+DB_PASSWORD=sqlagent
+DB_NAME=sakila
 ```
 
-**📖 자세한 Docker 사용법**: [`docker_compose_ollama_pgvector/docker-compose.md`](docker_compose_ollama_pgvector/docker-compose.md) 참조
+**📖 자세한 Docker 사용법**: [`docker_compose_ollama_mysql/docker-compose.md`](docker_compose_ollama_mysql/docker-compose.md) 참조
 
 ### 방법 2: 로컬 설치
 
@@ -55,12 +55,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 # Google Gemini API
 GOOGLE_API_KEY=your_gemini_api_key
 
-# MySQL 데이터베이스 (또는 PostgreSQL)
+# MySQL 데이터베이스
 DB_HOST=localhost
-DB_PORT=3306
-DB_USER=your_username
-DB_PASSWORD=your_password
-DB_NAME=your_database
+DB_PORT=3307
+DB_USER=sqlagent
+DB_PASSWORD=sqlagent
+DB_NAME=sakila
 ```
 
 #### 3. Ollama 모델 설치
@@ -164,7 +164,7 @@ uv run python src/sql_agent_gradio_chat.py --share
 
 ## 📊 샘플 데이터베이스 (Sakila)
 
-프로젝트에는 테스트용 **Sakila** 데이터베이스 스키마와 데이터가 포함되어 있습니다.
+프로젝트에는 테스트용 **Sakila** 데이터베이스 스키마와 데이터가 포함되어 있습니다(src\db_sample\sakila_schema_data.sql).
 
 ### 데이터베이스 구조
 
@@ -183,16 +183,60 @@ uv run python src/sql_agent_gradio_chat.py --share
 
 ### 샘플 데이터 설치
 
-`MySQL Workbench`에서 `import`하면 간편하게 사용할 수 있습니다.
-터미널에서 명령어를 사용할 경우 아래 내용을 참고하세요.
+Docker Compose를 사용하는 경우 아래 명령어를 사용하세요.
 
 ```bash
-# MySQL 사용 시
-mysql -u your_username -p your_database < src/db_sample/Dump20251013_schema_data.sql
+# 권장 방법: root 사용자로 실행 (SUPER 권한 필요한 구문 때문)
+docker exec -i mysql-db mysql -u root -psqlagent sakila < src/db_sample/sakila_schema_data.sql
 
-# 또는 스키마만 설치
-mysql -u your_username -p your_database < src/db_sample/Dump20251013_schema.sql
+# 또는 Docker Compose 사용 (docker_compose_ollama_mysql 디렉토리에서 실행)
+cd docker_compose_ollama_mysql
+docker-compose exec mysql-db mysql -u root -psqlagent sakila < ../src/db_sample/sakila_schema_data.sql
 ```
+
+**명령어 설명**:
+
+```bash
+docker exec -i mysql-db mysql -u root -psqlagent sakila < src/db_sample/sakila_schema_data.sql
+```
+
+- `docker exec`: 실행 중인 Docker 컨테이너에서 명령어 실행
+- `-i`: 표준 입력(stdin)을 열어둠 (SQL 파일 내용을 전달하기 위해)
+- `mysql-db`: 대상 MySQL 컨테이너 이름
+- `mysql`: MySQL 클라이언트 실행
+- `-u root`: **root 사용자** 사용 (SUPER 권한 필요)
+- `-psqlagent`: 비밀번호 지정 (**공백 없이** 붙여서 작성)
+- `sakila`: 대상 데이터베이스명
+- `< src/db_sample/sakila_schema_data.sql`: SQL 파일을 표준 입력으로 전달
+
+**중요**:
+
+- SQL 파일에 DEFINER 구문이 있어 SUPER 권한이 필요하므로 `root` 사용자를 사용합니다
+
+**문제 해결**:
+
+- `ERROR 1227: Access denied; you need SUPER privilege` 오류 발생 시:
+  - **해결책**: `root` 사용자로 실행 (위 명령어 참조)
+  - **원인**: SQL 파일에 DEFINER나 특별한 권한이 필요한 구문이 포함되어 있음
+- `ERROR 1049 (42000): Unknown database 'sakila'` 오류가 발생하면:
+  - Docker Compose가 제대로 실행되었는지 확인: `docker-compose ps`
+  - MySQL 초기화 로그 확인: `docker-compose logs mysql-db`
+- 데이터 설치 확인:
+
+  ```bash
+  # 테이블 목록 확인
+  docker exec -it mysql-db mysql -u root -psqlagent sakila -e "SHOW TABLES;"
+
+  # 데이터 개수 확인
+  docker exec -it mysql-db mysql -u root -psqlagent sakila -e "SELECT COUNT(*) FROM film;"
+  ```
+
+**참고**:
+
+- 컨테이너 이름: `mysql-db`
+- 사용자명: `sqlagent`
+- 비밀번호: `sqlagent`
+- 데이터베이스: `sakila`
 
 ### 예시 질문들
 
@@ -223,14 +267,13 @@ mysql -u your_username -p your_database < src/db_sample/Dump20251013_schema.sql
 │   ├── sql_agent_simple_hybrid.py    # 핵심 SQL Agent 로직
 │   ├── sql_agent_gradio_chat.py      # Gradio 웹 인터페이스
 │   └── db_sample/                    # 샘플 데이터베이스
-│       ├── Dump20251013_schema.sql   # 스키마만 (테이블 구조)
-│       └── Dump20251013_schema_data.sql # 스키마 + 데이터
-├── docker_compose_ollama_pgvector/   # Docker Compose 설정
-│   ├── docker-compose.yml           # Docker 서비스 정의
-│   └── docker-compose.md            # Docker 사용법 가이드
+│       └── sakila_schema_data.sql    # 스키마 + 데이터
+├── docker_compose_ollama_mysql/      # Docker Compose 설정
+│   ├── docker-compose.yml            # Docker 서비스 정의
+│   └── docker-compose.md             # Docker 사용법 가이드
 ├── pyproject.toml                    # uv 프로젝트 설정
-├── .env                             # 환경 변수 (생성 필요)
-└── README.md                        # 이 파일
+├── .env                              # 환경 변수 (생성 필요)
+└── README.md                         # 이 파일
 ```
 
 ## 🐛 문제 해결
@@ -259,7 +302,7 @@ docker-compose ps
 
 # 로그 확인
 docker-compose logs ollama
-docker-compose logs pgvector-db
+docker-compose logs mysql-db
 
 # 서비스 재시작
 docker-compose restart
@@ -298,14 +341,15 @@ git clone <repository-url>
 cd sql-agent
 
 # 2. Docker 서비스 시작
-cd docker_compose_ollama_pgvector
+cd docker_compose_ollama_mysql
 docker-compose up -d
 
 # 3. Ollama 모델 설치
 docker exec -it ollama ollama pull codeqwen:latest
 
 # 4. 환경 변수 설정
-# .env 파일 생성 후 Docker 설정값 입력 (위 참조)
+# .env 파일 생성 후 MySQL Docker 설정값 입력:
+# DB_HOST=localhost, DB_PORT=3307, DB_USER=sqlagent, DB_PASSWORD=sqlagent, DB_NAME=sakila
 
 # 5. 웹 챗봇 실행
 cd ..
