@@ -22,13 +22,18 @@ translator_llm = ChatGoogleGenerativeAI(
 )
 print("✅ Gemini 번역 모델 로드 완료")
 
-# SQL 생성용 CodeLlama
-# https://ollama.com/library/codeqwen
-sql_llm = OllamaLLM(
-    model="codeqwen:latest",
+# SQL 생성용 Gemini
+sql_llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
     temperature=0
 )
-print("✅ CodeLlama SQL 모델 로드 완료")
+# SQL 생성용 CodeLlama (주석 처리)
+# https://ollama.com/library/codeqwen
+# sql_llm = OllamaLLM(
+#     model="codeqwen:latest",
+#     temperature=0
+# )
+print("✅ Gemini SQL 모델 로드 완료")
 
 # MySQL 연결
 db_uri = f"mysql+pymysql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}?charset=utf8mb4"
@@ -251,7 +256,8 @@ Based on your instructions, here is the SQL DELETE query I have generated for th
 ```sql"""
 
         result = sql_llm.invoke(sql_prompt)
-        sql_query = result.strip()
+        # sql_query = result.strip() # Ollama 모델
+        sql_query = result.content.strip()  # Gemini 모델
 
         # SQLCoder 형식 정리 - 더 강력한 정리 로직
         # 1. 코드 블록 마커 제거
@@ -387,7 +393,7 @@ def process_question(question):
 if __name__ == "__main__":
     print("\n" + "="*50)
     print("🤖 간단한 하이브리드 SQL Agent")
-    print("🎯 Gemini(번역) + CodeLlama(SQL)")
+    print("🎯 Gemini(번역) + Gemini(SQL)")
     print("="*50)
     print("💡 예시 질문:")
     print("   📊 SELECT: 영화가 몇 개 있나요? / 고객 수를 보여주세요")
