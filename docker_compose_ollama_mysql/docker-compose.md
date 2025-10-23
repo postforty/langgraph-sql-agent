@@ -1,6 +1,6 @@
-# Docker Compose 사용법 - Ollama + PGVector
+# Docker Compose 사용법 - Ollama + MySQL
 
-이 문서는 GPU 지원 Ollama와 PGVector 데이터베이스를 Docker Compose로 실행하는 방법을 설명합니다.
+이 문서는 GPU 지원 Ollama와 MySQL 데이터베이스를 Docker Compose로 실행하는 방법을 설명합니다.
 
 ## 📋 사전 요구사항
 
@@ -22,7 +22,7 @@
 ### 1. 컨테이너 시작
 
 ```bash
-cd docker_compose_ollama_pgvector
+cd docker_compose_ollama_mysql
 docker-compose up -d
 ```
 
@@ -34,7 +34,7 @@ docker-compose ps
 
 # 로그 확인
 docker-compose logs ollama
-docker-compose logs pgvector-db
+docker-compose logs mysql-db
 ```
 
 ### 3. GPU 사용 확인
@@ -52,8 +52,11 @@ docker-compose logs ollama | grep -i cuda
 ### 모델 다운로드
 
 ```bash
-# Gemma3 모델 다운로드
-docker exec -it ollama ollama pull gemma3:latest
+# CodeQwen 모델 다운로드 (SQL Agent용)
+docker exec -it ollama ollama pull codeqwen:latest
+
+# 또는 다른 코드 생성 모델
+docker exec -it ollama ollama pull codellama:latest
 ```
 
 ### 모델 목록 확인
@@ -66,35 +69,39 @@ docker exec -it ollama ollama list
 
 ```bash
 # 대화형 테스트
-docker exec -it ollama ollama run gemma2:latest
+docker exec -it ollama ollama run codeqwen:latest
 
 # API 테스트
 curl http://localhost:11434/api/generate -d '{
-  "model": "gemma2:latest",
-  "prompt": "Hello, world!",
+  "model": "codeqwen:latest",
+  "prompt": "Generate SQL query to count all records in users table",
   "stream": false
 }'
 ```
 
-## 🗄️ PGVector 데이터베이스
+## 🗄️ MySQL 데이터베이스
 
 ### 데이터베이스 접속
 
 ```bash
-# psql로 접속
-docker exec -it pgvector-db psql -U langchain -d langchain_db
+# MySQL 클라이언트로 접속
+docker exec -it mysql-db mysql -u root -psqlagent
 
-# 또는 외부에서 접속
-psql -h localhost -p 5432 -U langchain -d langchain_db
+# 또는 sqlagent 사용자로 접속
+docker exec -it mysql-db mysql -u sqlagent -psqlagent sakila
+
+# 외부에서 접속 (MySQL 클라이언트 설치 필요)
+mysql -h localhost -P 3307 -u sqlagent -psqlagent sakila
 ```
 
 ### 기본 설정
 
 - **호스트**: localhost
-- **포트**: 5432
-- **사용자**: langchain
-- **비밀번호**: langchain
-- **데이터베이스**: langchain_db
+- **포트**: 3307 (외부 접속용)
+- **Root 비밀번호**: sqlagent
+- **사용자**: sqlagent
+- **비밀번호**: sqlagent
+- **데이터베이스**: sakila
 
 ## 🛠️ 관리 명령어
 
@@ -130,7 +137,7 @@ docker-compose logs -f
 
 # 특정 서비스 로그
 docker-compose logs -f ollama
-docker-compose logs -f pgvector-db
+docker-compose logs -f mysql-db
 ```
 
 ## 📊 성능 모니터링
@@ -148,7 +155,7 @@ docker exec -it ollama nvidia-smi --query-gpu=memory.used,memory.total --format=
 ### 컨테이너 리소스 사용량
 
 ```bash
-docker stats ollama pgvector-db
+docker stats ollama mysql-db
 ```
 
 ## 🔧 문제 해결
@@ -179,13 +186,16 @@ docker exec -it ollama df -h /root/.ollama
 
 ```bash
 # 컨테이너 상태 확인
-docker-compose ps pgvector-db
+docker-compose ps mysql-db
 
 # 포트 확인
-netstat -an | grep 5432
+netstat -an | grep 3307
 
 # 로그 확인
-docker-compose logs pgvector-db
+docker-compose logs mysql-db
+
+# MySQL 서비스 상태 확인
+docker exec -it mysql-db mysqladmin -u root -psqlagent status
 ```
 
 ## 📁 데이터 저장 위치
@@ -193,7 +203,7 @@ docker-compose logs pgvector-db
 ### Windows
 
 - **Ollama 모델**: `C:/docker_data/ollama_models`
-- **PGVector 데이터**: `C:/docker_data/pgvector_data`
+- **MySQL 데이터**: `C:/docker_data/mysql_data`
 
 ### 백업 방법
 
@@ -201,8 +211,11 @@ docker-compose logs pgvector-db
 # Ollama 모델 백업
 cp -r C:/docker_data/ollama_models C:/backup/ollama_models_$(date +%Y%m%d)
 
-# PGVector 데이터 백업
-docker exec pgvector-db pg_dump -U langchain langchain_db > backup_$(date +%Y%m%d).sql
+# MySQL 데이터 백업
+docker exec mysql-db mysqldump -u root -psqlagent --all-databases > backup_$(date +%Y%m%d).sql
+
+# 특정 데이터베이스만 백업
+docker exec mysql-db mysqldump -u root -psqlagent sakila > sakila_backup_$(date +%Y%m%d).sql
 ```
 
 ## 🔄 업데이트
@@ -233,34 +246,70 @@ docker-compose up -d
 from langchain_ollama.llms import OllamaLLM
 
 llm = OllamaLLM(
-    model="gemma2:latest",
+    model="codeqwen:latest",
     base_url="http://localhost:11434"
 )
 
-response = llm.invoke("Hello, world!")
+response = llm.invoke("Generate SQL query to select all films from sakila database")
 print(response)
 ```
 
-### PGVector 연결
+### MySQL 연결
 
 ```python
-import psycopg2
+import mysql.connector
 
-conn = psycopg2.connect(
+conn = mysql.connector.connect(
     host="localhost",
-    port=5432,
-    database="langchain_db",
-    user="langchain",
-    password="langchain"
+    port=3307,
+    database="sakila",
+    user="sqlagent",
+    password="sqlagent"
 )
+
+cursor = conn.cursor()
+cursor.execute("SELECT COUNT(*) FROM film")
+result = cursor.fetchone()
+print(f"Total films: {result[0]}")
+```
+
+### 환경 변수 설정 (.env 파일)
+
+```env
+# Google Gemini API
+GOOGLE_API_KEY=your_gemini_api_key
+
+# MySQL 데이터베이스 (Docker 설정과 일치)
+DB_HOST=localhost
+DB_PORT=3307
+DB_USER=sqlagent
+DB_PASSWORD=sqlagent
+DB_NAME=sakila
+
+# Ollama 설정
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
+## 📊 샘플 데이터 설치
+
+### Sakila 데이터베이스 설치
+
+```bash
+# 프로젝트 루트에서 실행
+docker exec -i mysql-db mysql -u root -psqlagent sakila < src/db_sample/sakila_schema_data.sql
+
+# 설치 확인
+docker exec -it mysql-db mysql -u root -psqlagent sakila -e "SHOW TABLES;"
+docker exec -it mysql-db mysql -u root -psqlagent sakila -e "SELECT COUNT(*) FROM film;"
 ```
 
 ## ⚡ 성능 최적화 팁
 
 1. **GPU 메모리 관리**: 큰 모델 사용 시 GPU 메모리 부족 주의
-2. **모델 선택**: 용도에 맞는 적절한 크기의 모델 선택
-3. **동시 요청**: 여러 요청 시 큐잉 고려
-4. **디스크 공간**: 모델 파일은 용량이 크므로 충분한 디스크 공간 확보
+2. **모델 선택**: SQL 생성에는 `codeqwen:latest` 또는 `codellama:latest` 권장
+3. **MySQL 설정**: 대용량 데이터 처리 시 `my.cnf` 튜닝 고려
+4. **동시 요청**: 여러 요청 시 큐잉 고려
+5. **디스크 공간**: 모델 파일과 MySQL 데이터용 충분한 디스크 공간 확보
 
 ## 🆘 지원
 
@@ -271,6 +320,35 @@ conn = psycopg2.connect(
 3. 컨테이너 로그
 4. 시스템 리소스 사용량
 
+## 🔗 관련 명령어
+
+### SQL Agent 실행
+
+```bash
+# 웹 챗봇 실행 (Docker 서비스 시작 후)
+cd ..  # 프로젝트 루트로 이동
+uv sync
+uv run python src/sql_agent_gradio_chat.py
+
+# 브라우저에서 http://localhost:7860 접속
+```
+
+### 데이터베이스 관리
+
+```bash
+# 모든 테이블 목록
+docker exec -it mysql-db mysql -u sqlagent -psqlagent sakila -e "SHOW TABLES;"
+
+# 특정 테이블 구조 확인
+docker exec -it mysql-db mysql -u sqlagent -psqlagent sakila -e "DESCRIBE film;"
+
+# 데이터 개수 확인
+docker exec -it mysql-db mysql -u sqlagent -psqlagent sakila -e "SELECT COUNT(*) FROM actor;"
+```
+
 ---
 
-**참고**: GPU 지원이 제대로 작동하면 Ollama의 추론 속도가 CPU 대비 10-100배 빨라집니다.
+**참고**:
+
+- GPU 지원이 제대로 작동하면 Ollama의 SQL 생성 속도가 CPU 대비 10-100배 빨라집니다
+- MySQL은 포트 3307로 외부 접속이 가능하므로 MySQL Workbench 등의 GUI 도구로도 접속할 수 있습니다
